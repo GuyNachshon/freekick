@@ -1,0 +1,23 @@
+{
+  "name": "free-kick",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "gsap": "^3.13.0",
+    "lodash-es": "^4.17.21",
+    "vite-svg-loader": "^5.1.0",
+    "vue": "^3.5.13"
+  },
+  "devDependencies": {
+    "@types/lodash-es": "^4.17.12",
+    "@vitejs/plugin-vue": "^5.2.3",
+    "sass-embedded": "^1.89.2",
+    "vite": "^6.3.5"
+  }
+}
