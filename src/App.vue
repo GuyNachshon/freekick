@@ -1,11 +1,16 @@
 <script setup>
-import ArielaLogo from './assets/ariela-logo.svg?component';
 import {onBeforeUnmount, onMounted, ref, computed} from 'vue';
 import gsap from 'gsap';
 import ScrollTrigger from 'gsap/ScrollTrigger';
 import ScrollToPlugin from 'gsap/ScrollToPlugin';
 import {SplitText} from "gsap/SplitText";
 import {throttle} from 'lodash-es';
+
+import ArielaLogo from './assets/ariela-logo.svg?component';
+import SportFiveLogo from './assets/sport5-logo.svg?component';
+import AthenaLogo from './assets/athena-logo.svg?component';
+import SportsMinistryLogo from './assets/sports-ministry-logo.svg?component';
+import WingateLogo from './assets/wingate-logo.svg?component';
 
 gsap.registerPlugin(ScrollTrigger);
 gsap.registerPlugin(SplitText);
@@ -30,6 +35,7 @@ const firstDayRef = ref(null);
 const secondDayRef = ref(null);
 const showBoycottModal = ref(false);
 const showBookPages = ref(false)
+const footerRef = ref(null);
 const boycottImages = [
     '/assets/boycott-images/1.webp', '/assets/boycott-images/2.avif', '/assets/boycott-images/3.webp',
     '/assets/boycott-images/4.png', '/assets/boycott-images/5.webp', '/assets/boycott-images/6.avif',
@@ -151,6 +157,9 @@ onMounted(() => {
     gsap.set(contentItemsRef.value[1], {opacity: 0, y: 100});
     gsap.set(contentItemsRef.value[2], {opacity: 0, y: 100});
 
+    // Set initial position for footer
+    gsap.set(footerRef.value, {opacity: 0, y: 100});
+
     // Set initial positions for descriptions
     const descriptions = document.querySelectorAll('.content__main__item__description');
     gsap.set(descriptions, {opacity: 0, scale: 0.95});
@@ -169,7 +178,7 @@ onMounted(() => {
         scrollTrigger: {
             trigger: '.content',
             start: 'top top',
-            end: '+=6000vh', // Increased from 800vh to make pin last much longer
+            end: '+=3000vh', // Increased from 800vh to make pin last much longer
             scrub: 3,
             pin: true,
             anticipatePin: 1,
@@ -293,19 +302,26 @@ onMounted(() => {
         }, '<1')
         .to({}, {duration: 8}) // Increased hold duration from 3 to 8
 
-        // Final exit animation
-        .to(contentItemsRef.value[2], {
-            opacity: 0,
-            y: -100,
+        // // Final exit animation
+        // .to(contentItemsRef.value[2], {
+        //     opacity: 0,
+        //     y: -100,
+        //     duration: 2,
+        //     ease: 'power3.out'
+        // })
+        // .to(descriptions[2], {
+        //     opacity: 0,
+        //     scale: 0.95,
+        //     duration: 1.2,
+        //     ease: 'power3.out'
+        // }, '<')
+        // Add footer animation
+        .to(footerRef.value, {
+            opacity: 1,
+            y: 0,
             duration: 2,
             ease: 'power3.out'
-        })
-        .to(descriptions[2], {
-            opacity: 0,
-            scale: 0.95,
-            duration: 1.2,
-            ease: 'power3.out'
-        }, '<');
+        }, '<0.5');
 
     // Original animations for video blur only (logo is now in main timeline)
     // Note: We animate video blur and overlay separately to avoid the filter
@@ -460,7 +476,7 @@ const mouseOverScheduleItem = async (itemID) => {
     const hoveredItem = document.querySelector(`[data-item-id="${itemID}"]`);
     if (!activeSection || !hoveredItem || !activeSection.contains(hoveredItem)) return;
 
-    if (itemID === 'about') {
+    if (itemID === 'about' || itemID === "8" || itemID === 8) {
         itemID = 'intro';
     }
     console.log('mouseOverScheduleItem', itemID, 'video playing:', playingVideo.value);
@@ -689,9 +705,9 @@ const menuClick = (section) => {
                     <div class="content__menu__item" id="first_day" @click="menuClick('first_day')">יום 1 29.5</div>
                     <div class="content__menu__item" id="second_day" @click="menuClick('second_day')">יום 2 30.5</div>
                 </div>
-                <div class="content__main" @mouseenter="returnToIntroVideo">
+                <div class="content__main">
                     <div class="content__main__item exclusion-element" id="about" ref="aboutRef" @mouseenter="mouseOverScheduleItem('about')" @mouseleave="mouseLeaveScheduleItem('about')">
-                        <div class="content__main__item__description">
+                        <div class="content__main__item__description" @mouseenter="returnToIntroVideo">
                             לכבוד 50 שנה לביטול <span class="highlight-content-text" @click="showBoycottModal = true">החרם על כדורגל הנשים,</span> יתקיים בתל אביב כנס מחקרי בן יומיים שייפתח צוהר לעולמו המורכב של כדורגל הנשים בארץ ובעולם. נבחן את התחום כתופעה חברתית ותרבותית, באמצעות הרצאות, פאנלים, ושיחות עם חוקרות מהארץ ומהעולם. בנוסף, תושק <span class="highlight-content-text" @click="showBookPages = true">חוברת מחקרית</span> חדשה העוסקת בהיסטוריה ובתרבות הכדורגל. זהו מפגש רב-תחומי שמציג את כדורגל הנשים לא רק כספורט, אלא גם כמרחב של תשוקה, התנגדות ושינוי חברתי.
                         </div>
                     </div>
@@ -792,11 +808,43 @@ const menuClick = (section) => {
                             </div>
                             <div class="content__main__item__slot__description exclusion-element" v-if="selectedItemID === 8">
                                 איך נאסר על נשים לשחק כדורגל במשך עשרות שנים – ואיך הן הצליחו להחזיר לעצמן את המגרש. מבט היסטורי על מקורות החרם הבריטי, השפעתו המקומית, ופריצת הדרך שהובילה למהפכה מגדרית על הדשא. נצלול לתוך השיח הפוליטי, החברתי והתרבותי של אותה תקופה, ונשאל – כיצד השפיע החרם, והאם השפעה זו מורגשת עד היום?
+                                <div class="content__main__item__slot__description__button" @click="showBookPages = true">
+                                    להצצה בחוברת
+                                    <svg width="32" height="13" viewBox="0 0 32 13" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                        <path d="M-2.72457e-07 6.23321L7.31712 0.835186L7.31712 11.6312L-2.72457e-07 6.23321Z" fill="white"/>
+                                        <rect x="7" y="5" width="25" height="2" fill="white"/>
+                                    </svg>
+
+                                </div>
                             </div>
                         </div>
                     </div>
                 </div>
 
+            </div>
+        </div>
+        <div class="footer" ref="footerRef">
+            <div class="footer__content">
+                <div class="footer__content__line">
+                    בית אריאלה, שדרות שאול המלך 25, תל אביב
+                </div>
+                <div class="footer__content__line">
+                    ליצירת קשר freekick@gmail.com | טל׳ 03-8299020
+                </div>
+                <div class="footer__content__line">
+                    <div class="footer__content__link__logo">
+                        <img src="./assets/footer-logos/sport5.png" alt="sport5 logo">
+                    </div>
+                    <div class="footer__content__link__logo">
+                        <img src="./assets/footer-logos/athena.png" alt="athena logo">
+                    </div>
+                    <div class="footer__content__link__logo">
+                        <img src="./assets/footer-logos/ministry.png" alt="ministry logo">
+                    </div>
+                    <div class="footer__content__link__logo">
+                        <img src="./assets/footer-logos/wingate.png" alt="wingate logo">
+                    </div>
+                </div>
             </div>
         </div>
         <div class="background">
@@ -975,7 +1023,7 @@ html, body, #app {
         cursor: pointer;
         border-radius: 50%;
         color: white;
-        margin-top: -16px;
+        margin-top: -10px;
 
         &--active {
             color: $color-primary !important;
@@ -1090,12 +1138,41 @@ html, body, #app {
                 .content__main__item__slot {
                     pointer-events: auto;
 
+
                     &__wrapper {
                         pointer-events: auto;
                     }
 
                     &__description {
                         pointer-events: auto;
+                        cursor: default;
+                        display: flex;
+                        flex-direction: column;
+
+                        &__button {
+                            pointer-events: auto;
+                            cursor: pointer;
+                            color: white;
+                            font-weight: 300;
+                            font-size: $text-size-xs;
+                            line-height: 25px;
+                            display: flex;
+                            flex-direction: row;
+                            justify-content: flex-start;
+                            gap: 4px;
+                            font-style: italic;
+                            align-items: center;
+
+                            &:hover {
+                                color: $color-primary;
+                                transition: color 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+
+                                svg, path, rect {
+                                    fill: $color-primary;
+                                    transition: fill 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+                                }
+                            }
+                        }
                     }
                 }
             }
@@ -1553,6 +1630,45 @@ html, body, #app {
                 transform: scale(1.02);
             }
         }
+    }
+}
+
+.footer {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    padding: 30px 60px;
+    width: 100%;
+    color: white;
+    z-index: 10;
+    opacity: 0;
+    transform: translateY(100px);
+    will-change: transform, opacity;
+    backface-visibility: hidden;
+    -webkit-font-smoothing: antialiased;
+    box-sizing: border-box;
+
+    &__content {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-end;
+        flex-direction: column;
+        gap: 10px;
+        font-weight: 350;
+
+        &__line {
+            font-size: $text-size-xs;
+            line-height: 20px;
+            color: white;
+            display: flex;
+            flex-direction: row-reverse;
+            gap: 24px;
+
+            &__logo {
+                height: 23px;
+            }
+        }
+
     }
 }
 </style>
