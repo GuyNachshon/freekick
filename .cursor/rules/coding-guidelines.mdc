@@ -1,0 +1,7 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+prioritize using flex boxes or grid over absolute positioning.
+consult gsap's, Vue's and Vite's docs when not sure about what to do.

@@ -61,58 +61,19 @@ const bookPagesImages = [
     '/assets/book-pages/16.png'
 ];
 
-const getDistanceToElements = (x, y) => {
-    // Get all elements with the exclusion-element class
-    const exclusionElements = document.querySelectorAll('.exclusion-element')
-    let minDistance = Infinity
-
-    exclusionElements.forEach(element => {
-        const rect = element.getBoundingClientRect()
-
-        // Check if point is inside element
-        if (x >= rect.left && x <= rect.right &&
-            y >= rect.top && y <= rect.bottom) {
-            minDistance = 0 // Inside element
-            return
-        }
-
-        // Calculate distance to nearest edge of element
-        const dx = Math.max(rect.left - x, 0, x - rect.right)
-        const dy = Math.max(rect.top - y, 0, y - rect.bottom)
-        const distance = Math.sqrt(dx * dx + dy * dy)
-
-        minDistance = Math.min(minDistance, distance)
-    })
-
-    return minDistance
-}
-
 const updateMask = (e) => {
     requestAnimationFrame(() => {
-        const x = e.clientX
-        const y = e.clientY
-        const centerRadius = 25
-        const fadeRadius = 150
-
-        const distanceToElement = getDistanceToElements(x, y)
-        const fadeDistance = 2
-
-        let opacity = 1
-        if (distanceToElement < fadeDistance) {
-            opacity = Math.max(0.1, distanceToElement / fadeDistance)
-        }
-
+        const x = e.clientX;
+        const y = e.clientY;
+        const centerRadius = 25;
+        const fadeRadius = 150;
         maskStyle.value = {
-            WebkitMask: `radial-gradient(circle at ${x}px ${y}px,
-                rgba(255,255,255,${opacity}) ${centerRadius}px,
-                transparent ${fadeRadius}px)`,
-            mask: `radial-gradient(circle at ${x}px ${y}px,
-                rgba(255,255,255,${opacity}) ${centerRadius}px,
-                transparent ${fadeRadius}px)`,
+            WebkitMask: `radial-gradient(circle at ${x}px ${y}px, rgba(255,255,255,1) ${centerRadius}px, transparent ${fadeRadius}px)`,
+            mask: `radial-gradient(circle at ${x}px ${y}px, rgba(255,255,255,1) ${centerRadius}px, transparent ${fadeRadius}px)`,
             transition: 'mask 0.1s cubic-bezier(.16,1,.91,.37), -webkit-mask 0.1s cubic-bezier(.16,1,.91,.37)'
-        }
-    })
-}
+        };
+    });
+};
 
 const throttledUpdateMask = throttle(updateMask, 8)
 
@@ -149,16 +110,17 @@ onMounted(() => {
     contentItemsRef.value = document.querySelectorAll('.content__main__item');
 
     // Set initial positions for menu items
-    gsap.set(menuItemsRef.value[1], {y: 200, opacity: 0});
-    gsap.set(menuItemsRef.value[2], {y: 400, opacity: 0});
+    gsap.set(menuItemsRef.value[1], {y: 0, opacity: 0});
+    gsap.set(menuItemsRef.value[2], {y: 0, opacity: 0});
 
     // Set initial positions for content items
     gsap.set(contentItemsRef.value[0], {opacity: 1, y: 0});
     gsap.set(contentItemsRef.value[1], {opacity: 0, y: 100});
     gsap.set(contentItemsRef.value[2], {opacity: 0, y: 100});
 
-    // Set initial position for footer
-    gsap.set(footerRef.value, {opacity: 0, y: 100});
+    // Set initial position for footer elements
+    gsap.set('.footer__content__line', {opacity: 0, y: 50});
+    gsap.set('.footer__content__line__logo', {opacity: 0, scale: 0.8});
 
     // Set initial positions for descriptions
     const descriptions = document.querySelectorAll('.content__main__item__description');
@@ -176,12 +138,30 @@ onMounted(() => {
     // Create the scroll-triggered animation
     let tl = gsap.timeline({
         scrollTrigger: {
+            id: 'main-content-scroll', // <-- add id here
             trigger: '.content',
             start: 'top top',
-            end: '+=3000vh', // Increased from 800vh to make pin last much longer
+            end: '+=3000vh',
             scrub: 3,
             pin: true,
             anticipatePin: 1,
+            onUpdate: (self) => {
+                // Calculate which section is currently active based on progress
+                const progress = self.progress;
+                const menuItems = document.querySelectorAll('.content__menu__item');
+                
+                // Remove underline from all items
+                menuItems.forEach(item => item.classList.remove('content__menu__item--active'));
+                
+                // Add underline to active section based on progress
+                if (progress < 0.33) {
+                    menuItems[0].classList.add('content__menu__item--active');
+                } else if (progress < 0.66) {
+                    menuItems[1].classList.add('content__menu__item--active');
+                } else {
+                    menuItems[2].classList.add('content__menu__item--active');
+                }
+            }
         }
     });
 
@@ -207,121 +187,115 @@ onMounted(() => {
             ease: 'power2.inOut'
         });
 
-    // PHASE 1: About section appears
-    tl.to(descriptions[0], {
+    // PHASE 1: About section appears with all menu items
+    tl.to([menuItemsRef.value[1], menuItemsRef.value[2]], {
+        opacity: 1,
+        duration: 2,
+        ease: 'power2.inOut'
+    }, 0)
+    .to(descriptions[0], {
         opacity: 1,
         scale: 1,
         duration: 2,
         ease: 'power2.inOut'
     }, 0)
-        .to({}, {duration: 8}) // Increased hold duration from 3 to 8
+    .to({}, {duration: 8})
 
-        // PHASE 2: Second menu item + content transition + all slots appear
-        .to(menuItemsRef.value[1], {
-            y: 0,
-            opacity: 1,
-            duration: 2,
-            ease: 'power3.out'
-        })
-        .to(contentItemsRef.value[0], {
-            opacity: 0,
-            y: -100,
-            duration: 2,
-            ease: 'power3.out'
-        }, '<')
-        .to(contentItemsRef.value[1], {
-            opacity: 1,
-            y: 0,
-            duration: 2,
-            ease: 'power3.out'
-        }, '<0.5')
-        .to(descriptions[0], {
-            opacity: 0,
-            scale: 0.95,
-            duration: 1.2,
-            ease: 'power3.out'
-        }, '<')
-        .to(descriptions[1], {
-            opacity: 1,
-            scale: 1,
-            duration: 2,
-            ease: 'power3.out'
-        }, '<0.5')
-        // All second section slots appear together
-        .to(secondContentSlots, {
-            y: 0,
-            opacity: 1,
-            scale: 1,
-            filter: 'blur(0px)',
-            duration: 1.8,
-            stagger: 0.2,
-            ease: 'power3.out'
-        }, '<1') // Start shortly after content transition begins
-        .to({}, {duration: 8}) // Increased hold duration from 3 to 8
+    // PHASE 2: Second content transition + all slots appear
+    .to(contentItemsRef.value[0], {
+        opacity: 0,
+        y: -100,
+        duration: 2,
+        ease: 'power3.out'
+    })
+    .to(contentItemsRef.value[1], {
+        opacity: 1,
+        y: 0,
+        duration: 2,
+        ease: 'power3.out'
+    }, '<0.5')
+    .to(descriptions[0], {
+        opacity: 0,
+        scale: 0.95,
+        duration: 1.2,
+        ease: 'power3.out'
+    }, '<')
+    .to(descriptions[1], {
+        opacity: 1,
+        scale: 1,
+        duration: 2,
+        ease: 'power3.out'
+    }, '<0.5')
+    // All second section slots appear together
+    .to(secondContentSlots, {
+        y: 0,
+        opacity: 1,
+        scale: 1,
+        filter: 'blur(0px)',
+        duration: 1.8,
+        stagger: 0.2,
+        ease: 'power3.out'
+    }, '<1')
+    .to({}, {duration: 8})
 
-        // PHASE 3: Third menu item + content transition + all slots appear
-        .to(menuItemsRef.value[2], {
-            y: 0,
-            opacity: 1,
-            duration: 2,
-            ease: 'power3.out'
-        })
-        .to(contentItemsRef.value[1], {
-            opacity: 0,
-            y: -100,
-            duration: 2,
-            ease: 'power3.out'
-        }, '<')
-        .to(contentItemsRef.value[2], {
-            opacity: 1,
-            y: 0,
-            duration: 2,
-            ease: 'power3.out'
-        }, '<0.5')
-        .to(descriptions[1], {
-            opacity: 0,
-            scale: 0.95,
-            duration: 1.2,
-            ease: 'power3.out'
-        }, '<')
-        .to(descriptions[2], {
-            opacity: 1,
-            scale: 1,
-            duration: 2,
-            ease: 'power3.out'
-        }, '<0.5')
-        // All third section slots appear together
-        .to(thirdContentSlots, {
-            y: 0,
-            opacity: 1,
-            scale: 1,
-            filter: 'blur(0px)',
-            duration: 1.8,
-            stagger: 0.2,
-            ease: 'power3.out'
-        }, '<1')
-        .to({}, {duration: 8}) // Increased hold duration from 3 to 8
+    // PHASE 3: Third content transition + all slots appear
+    .to(contentItemsRef.value[1], {
+        opacity: 0,
+        y: -100,
+        duration: 2,
+        ease: 'power3.out'
+    })
+    .to(contentItemsRef.value[2], {
+        opacity: 1,
+        y: 0,
+        duration: 2,
+        ease: 'power3.out'
+    }, '<0.5')
+    .to(descriptions[1], {
+        opacity: 0,
+        scale: 0.95,
+        duration: 1.2,
+        ease: 'power3.out'
+    }, '<')
+    .to(descriptions[2], {
+        opacity: 1,
+        scale: 1,
+        duration: 2,
+        ease: 'power3.out'
+    }, '<0.5')
+    // All third section slots appear together
+    .to(thirdContentSlots, {
+        y: 0,
+        opacity: 1,
+        scale: 1,
+        filter: 'blur(0px)',
+        duration: 1.8,
+        stagger: 0.2,
+        ease: 'power3.out'
+    }, '<1')
+    .to({}, {duration: 8})
 
-        // // Final exit animation
-        // .to(contentItemsRef.value[2], {
-        //     opacity: 0,
-        //     y: -100,
-        //     duration: 2,
-        //     ease: 'power3.out'
-        // })
-        // .to(descriptions[2], {
-        //     opacity: 0,
-        //     scale: 0.95,
-        //     duration: 1.2,
-        //     ease: 'power3.out'
-        // }, '<')
-        // Add footer animation
-        .to(footerRef.value, {
-            opacity: 1,
-            y: 0,
-            duration: 2,
-            ease: 'power3.out'
-        }, '<0.5');
+    // Add footer animation
+    .to(footerRef.value, {
+        opacity: 1,
+        y: 0,
+        duration: 2,
+        ease: 'power3.out'
+    }, '<0.5')
+    .to('.footer__content__line', {
+        opacity: 1,
+        y: 0,
+        duration: 1.2,
+        stagger: 0.2,
+        ease: 'power3.out'
+    }, '<0.5')
+    .to('.footer__content__line__logo', {
+        opacity: 1,
+        scale: 1,
+        duration: 0.8,
+        stagger: 0.1,
+        ease: 'back.out(1.7)'
+    }, '<0.3');
 
     // Original animations for video blur only (logo is now in main timeline)
     // Note: We animate video blur and overlay separately to avoid the filter
@@ -621,14 +595,13 @@ const closeBookModal = () => {
 };
 
 const menuClick = (section) => {
-    console.log('menuClick', section);
-    if (section === 'about') {
-        gsap.to(window, {duration: 2, scrollTo: "#about"})
-    } else if (section === 'first_day') {
-        gsap.to(window, {duration: 2, scrollTo: "#first_day"})
-    } else if (section === 'second_day') {
-        gsap.to(window, {duration: 2, scrollTo: "#second_day"})
-    }
+    const st = ScrollTrigger.getById('main-content-scroll');
+    if (!st) return;
+    let progress = 0;
+    if (section === 'about') progress = 0.1;
+    else if (section === 'first_day') progress = 0.4;
+    else if (section === 'second_day') progress = 0.78;
+    st.scroll(st.start + (st.end - st.start) * progress);
 };
 
 </script>
@@ -701,7 +674,7 @@ const menuClick = (section) => {
             <!--            <div class="content-spacer"></div>-->
             <div class="content" v-show="!showBoycottModal && !showBookPages">
                 <div class="content__menu">
-                    <div class="content__menu__item" id="about" @click="menuClick('about')">אודות</div>
+                    <div class="content__menu__item" id="about" @click="menuClick('about')">t</div>
                     <div class="content__menu__item" id="first_day" @click="menuClick('first_day')">יום 1 29.5</div>
                     <div class="content__menu__item" id="second_day" @click="menuClick('second_day')">יום 2 30.5</div>
                 </div>
@@ -829,19 +802,19 @@ const menuClick = (section) => {
                     בית אריאלה, שדרות שאול המלך 25, תל אביב
                 </div>
                 <div class="footer__content__line">
-                    ליצירת קשר freekick@gmail.com | טל׳ 03-8299020
+                    ליצירת קשר info@freekick.com | טל׳ 03-8299020
                 </div>
                 <div class="footer__content__line">
-                    <div class="footer__content__link__logo">
+                    <div class="footer__content__line__logo">
                         <img src="./assets/footer-logos/sport5.png" alt="sport5 logo">
                     </div>
-                    <div class="footer__content__link__logo">
+                    <div class="footer__content__line__logo">
                         <img src="./assets/footer-logos/athena.png" alt="athena logo">
                     </div>
-                    <div class="footer__content__link__logo">
+                    <div class="footer__content__line__logo">
                         <img src="./assets/footer-logos/ministry.png" alt="ministry logo">
                     </div>
-                    <div class="footer__content__link__logo">
+                    <div class="footer__content__line__logo">
                         <img src="./assets/footer-logos/wingate.png" alt="wingate logo">
                     </div>
                 </div>
@@ -1096,7 +1069,10 @@ html, body, #app {
             }
 
             &--active {
+                color: $color-primary;
                 text-decoration: underline;
+                text-underline-offset: 8px;
+                text-decoration-thickness: 4px;
             }
         }
     }
@@ -1198,8 +1174,12 @@ html, body, #app {
 
                 .highlight-content-text {
                     color: white;
+                    font-weight: bold;
+                    font-style: italic;
+                    position: relative;
                     cursor: pointer;
                     transition: color 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+
 
                     &:hover {
                         color: $color-primary;
@@ -1434,7 +1414,7 @@ html, body, #app {
     width: 100vw;
     height: 100vh;
     color: white;
-    background: rgba(0, 0, 0, 0.8);
+    background: rgba(0, 0, 0, 0.4);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -1596,13 +1576,17 @@ html, body, #app {
     transition: opacity 0.3s ease;
 }
 
+#about {
+    opacity: 0;
+}
+
 .book_pages {
     position: fixed;
     top: 0;
     left: 0;
     width: 100vw;
     height: 100vh;
-    background: rgba(0, 0, 0, 0.9);
+    background: rgba(255, 255, 255, 0.5);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -1637,16 +1621,14 @@ html, body, #app {
     position: fixed;
     bottom: 0;
     left: 0;
-    padding: 30px 60px;
     width: 100%;
+    padding: 30px 60px;
     color: white;
     z-index: 10;
-    opacity: 0;
-    transform: translateY(100px);
+    box-sizing: border-box;
     will-change: transform, opacity;
     backface-visibility: hidden;
     -webkit-font-smoothing: antialiased;
-    box-sizing: border-box;
 
     &__content {
         display: flex;
@@ -1663,12 +1645,19 @@ html, body, #app {
             display: flex;
             flex-direction: row-reverse;
             gap: 24px;
+            will-change: transform, opacity;
+            transform: translateY(50px);
+            opacity: 0;
+            direction: rtl;
 
             &__logo {
                 height: 23px;
+                will-change: transform, opacity;
+                transform: scale(0.8);
+                opacity: 0;
+                margin-top: 2px;
             }
         }
-
     }
 }
 </style>
