@@ -131,7 +131,7 @@ onMounted(() => {
     const secondContentSlots = document.querySelectorAll('.content__main__item:nth-child(2) .content__main__item__slot');
     const thirdContentSlots = document.querySelectorAll('.content__main__item:nth-child(3) .content__main__item__slot');
 
-    gsap.set(firstContentSlots, {y: 1000, opacity: 0});
+    gsap.set(firstContentSlots, {y: 500, opacity: 0});
     gsap.set(secondContentSlots, {y: 50, opacity: 0, scale: 0.95, filter: 'blur(10px)'});
     gsap.set(thirdContentSlots, {y: 50, opacity: 0, scale: 0.95, filter: 'blur(10px)'});
 
@@ -141,7 +141,7 @@ onMounted(() => {
             id: 'main-content-scroll', // <-- add id here
             trigger: '.content',
             start: 'top top',
-            end: '+=3000vh',
+            end: '+=4000vh',
             scrub: 3,
             pin: true,
             anticipatePin: 1,
@@ -154,7 +154,7 @@ onMounted(() => {
                 menuItems.forEach(item => item.classList.remove('content__menu__item--active'));
                 
                 // Add underline to active section based on progress
-                if (progress < 0.33) {
+                if (progress < 0.2) {
                     menuItems[0].classList.add('content__menu__item--active');
                 } else if (progress < 0.66) {
                     menuItems[1].classList.add('content__menu__item--active');
@@ -176,30 +176,30 @@ onMounted(() => {
         scrollTrigger: {
             trigger: '.content-wrapper',
             start: 'top bottom',
-            end: 'top+=100vh bottom',
+            end: 'top+=20vh bottom',
             scrub: 1,
         }
     })
         .to(logo, {
             top: `${navCenterY}px`,
             scale: 1,
-            duration: 2,
+            duration: 0.4, // was 1
             ease: 'power2.inOut'
         });
 
     // PHASE 1: About section appears with all menu items
     tl.to([menuItemsRef.value[1], menuItemsRef.value[2]], {
         opacity: 1,
-        duration: 2,
+        duration: 0.7, // was 2
         ease: 'power2.inOut'
     }, 0)
     .to(descriptions[0], {
         opacity: 1,
         scale: 1,
-        duration: 2,
+        duration: 0.7, // was 2
         ease: 'power2.inOut'
     }, 0)
-    .to({}, {duration: 8})
+    .to({}, {duration: 1}) // was 8, now 1 for much faster transition
 
     // PHASE 2: Second content transition + all slots appear
     .to(contentItemsRef.value[0], {
@@ -273,9 +273,7 @@ onMounted(() => {
         stagger: 0.2,
         ease: 'power3.out'
     }, '<1')
-    .to({}, {duration: 8})
-
-    // Add footer animation
+    // Move footer animation here (earlier)
     .to(footerRef.value, {
         opacity: 1,
         y: 0,
@@ -295,7 +293,8 @@ onMounted(() => {
         duration: 0.8,
         stagger: 0.1,
         ease: 'back.out(1.7)'
-    }, '<0.3');
+    }, '<0.3')
+    .to({}, {duration: 8})
 
     // Original animations for video blur only (logo is now in main timeline)
     // Note: We animate video blur and overlay separately to avoid the filter
@@ -401,6 +400,16 @@ onMounted(() => {
             ease: 'power2.out'
         });
     }
+
+    gsap.timeline({
+        scrollTrigger: {
+            trigger: '.content',
+            start: 'top top',
+            end: '+=1',
+            onEnterBack: () => returnToIntroVideo(),
+            onLeaveBack: () => returnToIntroVideo(),
+        }
+    });
 });
 
 onBeforeUnmount(() => {
@@ -444,6 +453,22 @@ const clickScheduleItem = (itemID) => {
     }
 }
 
+// Add this helper above mouseOverScheduleItem
+async function switchVideo(videoEl, src) {
+    if (!videoEl) return;
+    videoEl.pause();
+    videoEl.src = src;
+    videoEl.load();
+    await new Promise(resolve => {
+        const onCanPlay = () => {
+            videoEl.removeEventListener('canplay', onCanPlay);
+            resolve();
+        };
+        videoEl.addEventListener('canplay', onCanPlay);
+    });
+    await videoEl.play().catch(() => {});
+}
+
 const mouseOverScheduleItem = async (itemID) => {
     // Check if the hovered item is within the active section
     const activeSection = document.querySelector(`.content__main__item[style*="opacity: 1"]`);
@@ -459,47 +484,29 @@ const mouseOverScheduleItem = async (itemID) => {
         const videoPath = `/assets/background-videos/${itemID}.mp4`;
 
         try {
-            if (clearVideoRef.value) {
-                clearVideoRef.value.src = videoPath;
-                await clearVideoRef.value.load();
-                await clearVideoRef.value.play();
-            }
-            if (backgroundVideoRef.value) {
-                backgroundVideoRef.value.src = videoPath;
-                await backgroundVideoRef.value.load();
-                await backgroundVideoRef.value.play();
-                // Only remove blur if no slot is selected
-                if (selectedItemID.value === null) {
-                    gsap.to(backgroundVideoRef.value, {
-                        filter: 'blur(0px)',
-                        duration: 0.8,
-                        ease: 'power2.inOut'
-                    });
-                    gsap.to('.video-overlay', {
-                        opacity: 0,
-                        duration: 0.8,
-                        ease: 'power2.inOut'
-                    });
-                }
-            }
+            await switchVideo(clearVideoRef.value, videoPath);
+            await switchVideo(backgroundVideoRef.value, videoPath);
+            // Always remove blur on hover
+            gsap.to(backgroundVideoRef.value, {
+                filter: 'blur(0px)',
+                duration: 0.8,
+                ease: 'power2.inOut'
+            });
+            gsap.to('.video-overlay', {
+                opacity: 0,
+                duration: 0.8,
+                ease: 'power2.inOut'
+            });
         } catch (error) {
             console.error('Error loading video:', error);
             // Fallback to intro video on error
             playingVideo.value = 'intro';
-            if (clearVideoRef.value) {
-                clearVideoRef.value.src = '/assets/background-videos/intro.mp4';
-                await clearVideoRef.value.load();
-                await clearVideoRef.value.play();
-            }
-            if (backgroundVideoRef.value) {
-                backgroundVideoRef.value.src = '/assets/background-videos/intro.mp4';
-                await backgroundVideoRef.value.load();
-                await backgroundVideoRef.value.play();
-            }
+            await switchVideo(clearVideoRef.value, '/assets/background-videos/intro.mp4');
+            await switchVideo(backgroundVideoRef.value, '/assets/background-videos/intro.mp4');
         }
     } else {
-        // If it's the same video, only remove blur if no slot is selected
-        if (backgroundVideoRef.value && selectedItemID.value === null) {
+        // Always remove blur on hover
+        if (backgroundVideoRef.value) {
             gsap.to(backgroundVideoRef.value, {
                 filter: 'blur(0px)',
                 duration: 0.8,
@@ -1386,9 +1393,8 @@ html, body, #app {
 
 .blurred-video, .clear-video {
     position: absolute;
-    width: 1511px;
-    height: 873px;
-    left: -31px;
+    width: 100%;
+    height: 100%;
     top: 2px;
     object-fit: cover;
     display: block;
@@ -1399,6 +1405,7 @@ html, body, #app {
     z-index: 1;
     will-change: mask;
     transition: mask 0.8s cubic-bezier(0.16, 1, 0.3, 1), -webkit-mask 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+    
 }
 
 .blurred-video {
@@ -1586,7 +1593,7 @@ html, body, #app {
     left: 0;
     width: 100vw;
     height: 100vh;
-    background: rgba(255, 255, 255, 0.5);
+    background: rgba(0, 0, 0, 0.4);
     display: flex;
     align-items: center;
     justify-content: center;
