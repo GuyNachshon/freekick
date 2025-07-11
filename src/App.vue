@@ -36,15 +36,16 @@ const secondDayRef = ref(null);
 const showBoycottModal = ref(false);
 const showBookPages = ref(false)
 const footerRef = ref(null);
+const REMOTE_ASSET_BASE = 'https://pub-13c2bb82e77641b081c73ec7a7b46bd2.r2.dev';
 const boycottImages = [
-    '/assets/boycott-images/1.webp', '/assets/boycott-images/2.avif', '/assets/boycott-images/3.webp',
-    '/assets/boycott-images/4.png', '/assets/boycott-images/5.webp', '/assets/boycott-images/6.avif',
-    '/assets/boycott-images/7.avif', '/assets/boycott-images/8.webp', '/assets/boycott-images/9.avif',
-    '/assets/boycott-images/10.webp', '/assets/boycott-images/11.webp', '/assets/boycott-images/12.jpg',
-    '/assets/boycott-images/13.jpg', '/assets/boycott-images/14.jpg', '/assets/boycott-images/15.jpg',
-    '/assets/boycott-images/16.webp', '/assets/boycott-images/17.webp', '/assets/boycott-images/18.png',
-    '/assets/boycott-images/19.png', '/assets/boycott-images/20.jpg', '/assets/boycott-images/21.png',
-    '/assets/boycott-images/22.png'
+    `${REMOTE_ASSET_BASE}/boycott-images/1.webp`, `${REMOTE_ASSET_BASE}/boycott-images/2.avif`, `${REMOTE_ASSET_BASE}/boycott-images/3.webp`,
+    `${REMOTE_ASSET_BASE}/boycott-images/4.png`, `${REMOTE_ASSET_BASE}/boycott-images/5.webp`, `${REMOTE_ASSET_BASE}/boycott-images/6.avif`,
+    `${REMOTE_ASSET_BASE}/boycott-images/7.avif`, `${REMOTE_ASSET_BASE}/boycott-images/8.webp`, `${REMOTE_ASSET_BASE}/boycott-images/9.avif`,
+    `${REMOTE_ASSET_BASE}/boycott-images/10.webp`, `${REMOTE_ASSET_BASE}/boycott-images/11.webp`, `${REMOTE_ASSET_BASE}/boycott-images/12.jpg`,
+    `${REMOTE_ASSET_BASE}/boycott-images/13.jpg`, `${REMOTE_ASSET_BASE}/boycott-images/14.jpg`, `${REMOTE_ASSET_BASE}/boycott-images/15.jpg`,
+    `${REMOTE_ASSET_BASE}/boycott-images/16.webp`, `${REMOTE_ASSET_BASE}/boycott-images/17.webp`, `${REMOTE_ASSET_BASE}/boycott-images/18.png`,
+    `${REMOTE_ASSET_BASE}/boycott-images/19.png`, `${REMOTE_ASSET_BASE}/boycott-images/20.jpg`, `${REMOTE_ASSET_BASE}/boycott-images/21.png`,
+    `${REMOTE_ASSET_BASE}/boycott-images/22.png`
 ];
 const currentIndex = ref(0);
 const currentImage = computed(() => boycottImages[currentIndex.value]);
@@ -53,12 +54,11 @@ const boycottImageRef = ref(null);
 let selectedItemID = ref(null);
 const currentBookPage = ref(0);
 const bookPagesImages = [
-    '/assets/book-pages/1.png', '/assets/book-pages/2.png', '/assets/book-pages/3.png',
-    '/assets/book-pages/4.png', '/assets/book-pages/5.png', '/assets/book-pages/6.png',
-    '/assets/book-pages/7.png', '/assets/book-pages/8.png', '/assets/book-pages/9.png',
-    '/assets/book-pages/10.png', '/assets/book-pages/11.png', '/assets/book-pages/12.png',
-    '/assets/book-pages/13.png', '/assets/book-pages/14.png', '/assets/book-pages/15.png',
-    '/assets/book-pages/16.png'
+    `${REMOTE_ASSET_BASE}/book-pages/1.jpg`, `${REMOTE_ASSET_BASE}/book-pages/2.jpg`, `${REMOTE_ASSET_BASE}/book-pages/3.jpg`,
+    `${REMOTE_ASSET_BASE}/book-pages/4.jpg`, `${REMOTE_ASSET_BASE}/book-pages/5.jpg`, `${REMOTE_ASSET_BASE}/book-pages/6.jpg`,
+    `${REMOTE_ASSET_BASE}/book-pages/7.jpg`, `${REMOTE_ASSET_BASE}/book-pages/8.jpg`, `${REMOTE_ASSET_BASE}/book-pages/9.jpg`,
+    `${REMOTE_ASSET_BASE}/book-pages/10.jpg`, `${REMOTE_ASSET_BASE}/book-pages/12.jpg`,
+    `${REMOTE_ASSET_BASE}/book-pages/13.jpg`, `${REMOTE_ASSET_BASE}/book-pages/14.jpg`, `${REMOTE_ASSET_BASE}/book-pages/15.jpg`,
 ];
 
 const updateMask = (e) => {
@@ -95,12 +95,12 @@ onMounted(() => {
 
     // Set initial video sources
     if (clearVideoRef.value) {
-        clearVideoRef.value.src = '/assets/background-videos/intro.mp4';
+        clearVideoRef.value.src = `${REMOTE_ASSET_BASE}/background-videos/intro.mp4`;
         clearVideoRef.value.load();
         clearVideoRef.value.play();
     }
     if (backgroundVideoRef.value) {
-        backgroundVideoRef.value.src = '/assets/background-videos/intro.mp4';
+        backgroundVideoRef.value.src = `${REMOTE_ASSET_BASE}/background-videos/intro.mp4`;
         backgroundVideoRef.value.load();
         backgroundVideoRef.value.play();
     }
@@ -190,111 +190,111 @@ onMounted(() => {
     // PHASE 1: About section appears with all menu items
     tl.to([menuItemsRef.value[1], menuItemsRef.value[2]], {
         opacity: 1,
-        duration: 0.7, // was 2
+        duration: 0.5, // was 2, now 0.5
         ease: 'power2.inOut'
     }, 0)
     .to(descriptions[0], {
         opacity: 1,
         scale: 1,
-        duration: 0.7, // was 2
+        duration: 0.5, // was 2, now 0.5
         ease: 'power2.inOut'
     }, 0)
-    .to({}, {duration: 1}) // was 8, now 1 for much faster transition
+    .to({}, {duration: 0.3}) // was 8, then 1, now 0.3 for much faster transition
 
     // PHASE 2: Second content transition + all slots appear
     .to(contentItemsRef.value[0], {
         opacity: 0,
         y: -100,
-        duration: 2,
+        duration: 0.5, // was 2
         ease: 'power3.out'
     })
     .to(contentItemsRef.value[1], {
         opacity: 1,
         y: 0,
-        duration: 2,
+        duration: 0.5, // was 2
         ease: 'power3.out'
-    }, '<0.5')
+    }, '<0.2')
     .to(descriptions[0], {
         opacity: 0,
         scale: 0.95,
-        duration: 1.2,
+        duration: 0.3, // was 1.2
         ease: 'power3.out'
     }, '<')
     .to(descriptions[1], {
         opacity: 1,
         scale: 1,
-        duration: 2,
+        duration: 0.5, // was 2
         ease: 'power3.out'
-    }, '<0.5')
+    }, '<0.2')
     // All second section slots appear together
     .to(secondContentSlots, {
         y: 0,
         opacity: 1,
         scale: 1,
         filter: 'blur(0px)',
-        duration: 1.8,
-        stagger: 0.2,
+        duration: 0.5, // was 1.8
+        stagger: 0.1, // was 0.2
         ease: 'power3.out'
-    }, '<1')
-    .to({}, {duration: 8})
+    }, '<0.2')
+    .to({}, {duration: 0.5}) // was 8
 
     // PHASE 3: Third content transition + all slots appear
     .to(contentItemsRef.value[1], {
         opacity: 0,
         y: -100,
-        duration: 2,
+        duration: 0.5, // was 2
         ease: 'power3.out'
     })
     .to(contentItemsRef.value[2], {
         opacity: 1,
         y: 0,
-        duration: 2,
+        duration: 0.5, // was 2
         ease: 'power3.out'
-    }, '<0.5')
+    }, '<0.2')
     .to(descriptions[1], {
         opacity: 0,
         scale: 0.95,
-        duration: 1.2,
+        duration: 0.3, // was 1.2
         ease: 'power3.out'
     }, '<')
     .to(descriptions[2], {
         opacity: 1,
         scale: 1,
-        duration: 2,
+        duration: 0.5, // was 2
         ease: 'power3.out'
-    }, '<0.5')
+    }, '<0.2')
     // All third section slots appear together
     .to(thirdContentSlots, {
         y: 0,
         opacity: 1,
         scale: 1,
         filter: 'blur(0px)',
-        duration: 1.8,
-        stagger: 0.2,
+        duration: 0.5, // was 1.8
+        stagger: 0.1, // was 0.2
         ease: 'power3.out'
-    }, '<1')
+    }, '<0.2')
     // Move footer animation here (earlier)
     .to(footerRef.value, {
         opacity: 1,
         y: 0,
-        duration: 2,
+        duration: 0.5, // was 2
         ease: 'power3.out'
-    }, '<0.5')
+    }, '<0.2')
     .to('.footer__content__line', {
         opacity: 1,
         y: 0,
-        duration: 1.2,
-        stagger: 0.2,
+        duration: 0.3, // was 1.2
+        stagger: 0.1, // was 0.2
         ease: 'power3.out'
-    }, '<0.5')
+    }, '<0.2')
     .to('.footer__content__line__logo', {
         opacity: 1,
         scale: 1,
-        duration: 0.8,
-        stagger: 0.1,
+        duration: 0.3, // was 0.8
+        stagger: 0.05, // was 0.1
         ease: 'back.out(1.7)'
-    }, '<0.3')
-    .to({}, {duration: 8})
+    }, '<0.1')
+    .to({}, {duration: 0.5}); // was 8
 
     // Original animations for video blur only (logo is now in main timeline)
     // Note: We animate video blur and overlay separately to avoid the filter
@@ -337,12 +337,12 @@ onMounted(() => {
                     if (selectedItemID.value === null) {
                         playingVideo.value = 'intro';
                         if (clearVideoRef.value) {
-                            clearVideoRef.value.src = '/assets/background-videos/intro.mp4';
+                            clearVideoRef.value.src = `${REMOTE_ASSET_BASE}/background-videos/intro.mp4`;
                             clearVideoRef.value.load();
                             clearVideoRef.value.play();
                         }
                         if (backgroundVideoRef.value) {
-                            backgroundVideoRef.value.src = '/assets/background-videos/intro.mp4';
+                            backgroundVideoRef.value.src = `${REMOTE_ASSET_BASE}/background-videos/intro.mp4`;
                             backgroundVideoRef.value.load();
                             backgroundVideoRef.value.play();
                         }
@@ -481,7 +481,7 @@ const mouseOverScheduleItem = async (itemID) => {
     console.log('mouseOverScheduleItem', itemID, 'video playing:', playingVideo.value);
     if (playingVideo.value !== itemID) {
         playingVideo.value = itemID;
-        const videoPath = `/assets/background-videos/${itemID}.mp4`;
+        const videoPath = `${REMOTE_ASSET_BASE}/background-videos/${itemID}.mp4`;
 
         try {
             await switchVideo(clearVideoRef.value, videoPath);
@@ -501,8 +501,8 @@ const mouseOverScheduleItem = async (itemID) => {
             console.error('Error loading video:', error);
             // Fallback to intro video on error
             playingVideo.value = 'intro';
-            await switchVideo(clearVideoRef.value, '/assets/background-videos/intro.mp4');
-            await switchVideo(backgroundVideoRef.value, '/assets/background-videos/intro.mp4');
+            await switchVideo(clearVideoRef.value, `${REMOTE_ASSET_BASE}/background-videos/intro.mp4`);
+            await switchVideo(backgroundVideoRef.value, `${REMOTE_ASSET_BASE}/background-videos/intro.mp4`);
         }
     } else {
         // Always remove blur on hover
@@ -564,12 +564,12 @@ const returnToIntroVideo = () => {
     if (playingVideo.value !== 'intro') {
         playingVideo.value = 'intro';
         if (clearVideoRef.value) {
-            clearVideoRef.value.src = '/assets/background-videos/intro.mp4';
+            clearVideoRef.value.src = `${REMOTE_ASSET_BASE}/background-videos/intro.mp4`;
             clearVideoRef.value.load();
             clearVideoRef.value.play();
         }
         if (backgroundVideoRef.value) {
-            backgroundVideoRef.value.src = '/assets/background-videos/intro.mp4';
+            backgroundVideoRef.value.src = `${REMOTE_ASSET_BASE}/background-videos/intro.mp4`;
             backgroundVideoRef.value.load();
             backgroundVideoRef.value.play();
             gsap.to(backgroundVideoRef.value, {
@@ -681,7 +681,7 @@ const menuClick = (section) => {
             <!--            <div class="content-spacer"></div>-->
             <div class="content" v-show="!showBoycottModal && !showBookPages">
                 <div class="content__menu">
-                    <div class="content__menu__item" id="about" @click="menuClick('about')">t</div>
+                    <div class="content__menu__item" id="about" @click="menuClick('about')"></div>
                     <div class="content__menu__item" id="first_day" @click="menuClick('first_day')">יום 1 29.5</div>
                     <div class="content__menu__item" id="second_day" @click="menuClick('second_day')">יום 2 30.5</div>
                 </div>
@@ -813,26 +813,26 @@ const menuClick = (section) => {
                 </div>
                 <div class="footer__content__line">
                     <div class="footer__content__line__logo">
-                        <img src="./assets/footer-logos/sport5.png" alt="sport5 logo">
+                        <img :src="`${REMOTE_ASSET_BASE}/footer-logos/sport5.png`" alt="sport5 logo">
                     </div>
                     <div class="footer__content__line__logo">
-                        <img src="./assets/footer-logos/athena.png" alt="athena logo">
+                        <img :src="`${REMOTE_ASSET_BASE}/footer-logos/athena.png`" alt="athena logo">
                     </div>
                     <div class="footer__content__line__logo">
-                        <img src="./assets/footer-logos/ministry.png" alt="ministry logo">
+                        <img :src="`${REMOTE_ASSET_BASE}/footer-logos/ministry.png`" alt="ministry logo">
                     </div>
                     <div class="footer__content__line__logo">
-                        <img src="./assets/footer-logos/wingate.png" alt="wingate logo">
+                        <img :src="`${REMOTE_ASSET_BASE}/footer-logos/wingate.png`" alt="wingate logo">
                     </div>
                 </div>
             </div>
         </div>
         <div class="background">
             <div class="background_video">
-                <video ref="backgroundVideoRef" autoplay muted loop class="blurred-video" src="/assets/background-videos/intro.mp4">
+                <video ref="backgroundVideoRef" autoplay muted loop class="blurred-video" :src="`${REMOTE_ASSET_BASE}/background-videos/intro.mp4`">
                     Your browser does not support the video tag.
                 </video>
-                <video ref="clearVideoRef" autoplay muted loop class="clear-video" :style="maskStyle" src="/assets/background-videos/intro.mp4">
+                <video ref="clearVideoRef" autoplay muted loop class="clear-video" :style="maskStyle" :src="`${REMOTE_ASSET_BASE}/background-videos/intro.mp4`">
                     Your browser does not support the video tag.
                 </video>
                 <div class="video-overlay"></div>
@@ -1105,6 +1105,7 @@ html, body, #app {
             box-sizing: border-box;
             position: absolute;
             top: 0;
+            margin-top: 20px;
             left: 50%;
             transform: translateX(-50%) translateZ(0);
             will-change: opacity, transform;
@@ -1561,12 +1562,12 @@ html, body, #app {
 }
 
 .first_day {
-    margin-top: 70px;
+    // margin-top: 70px;
     padding-right: 128px; // TODO: make it native
 }
 
 .second_day {
-    margin-top: 111px;
+    // margin-top: 111px;
     padding-right: 128px;
 }
 
